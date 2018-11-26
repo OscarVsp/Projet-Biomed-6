@@ -1,4 +1,5 @@
 // Code issue du site http://jakemakes.eu/esp32-arduino-ds18b20-temperature-sensor/
+// Nécessite la library "OneWire" disponible via le lien ci-dessus
 
 #include <OneWire.h>
  
