@@ -1,4 +1,4 @@
-// Code issue du site http://jakemakes.eu/esp32-arduino-ds18b20-temperature-sensor/
+// Code issue du site http://jakemakes.eu/esp32-arduino-ds18b20-temperature-sensor/ visité pour la dernière fois le 12/12/2018.
 // Nécessite les library "OneWire" et "DallasTemperature" disponible via le lien ci-dessus.
 
 
