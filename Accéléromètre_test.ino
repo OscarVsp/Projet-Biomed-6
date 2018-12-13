@@ -1,3 +1,8 @@
+//Code issue du site internet "" consulté pour la dernière fois le 12-12-2018.
+//Ce code a été utilisé lors des tests de l'accéléromètre.
+
+
+
 //Add the SPI library so we can communicate with the ADXL345 sensor
 #include <SPI.h>
 
