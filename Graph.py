@@ -29,23 +29,12 @@ def animate(i):                                                                 
     ax1.plot(time, temp, 'r-')                                                              #(Re)crée un graphique avec en abscisse, le nombre de données, et en ordonnée la température.
     ax1.grid()                                                                              #Affiche la grille du graphique.
     ax1.axis([0,max(time)+1,min(temp)-1.5,max(temp)+1.5])                                   #Configure les bornes du graph : [(min en y), (max en y), (min en x), (max en x)]
-    
-    ax1.set_title('Température'+str(stat(temp)), fontsize=10)                                #Affiche la moyenne, le max et le min, calculé par la fonction "stat".
-    ax1.set_ylabel('Température'+'\n'+'en °C', fontsize=10)                                  #Nomme l'ordonné
-    ax1.set_xlabel('Temps seconde', fontsize=10)                                             #Nomme l'abscisse
+    ax1.set_title('Température'+str(stat(temp)), fontsize=10)                               #Affiche la moyenne, le max et le min, calculé par la fonction "stat".
+    ax1.set_ylabel('Température'+'\n'+'en °C', fontsize=10)                                 #Nomme l'ordonné
+    ax1.set_xlabel('Temps seconde', fontsize=10)                                            #Nomme l'abscisse
     ax1.set_xticks([20*i for i in range(len(temp)//2)])
 
-
-
-    """bpm=data[2]                                                             #Idem que précédement mais avec le paramètre BPM.
-    ax2.clear()
-    ax2.plot(time, bpm)
-    ax2.axis([1,int(len(bpm))+1,min(bpm)-1,max(bpm)+1])
-    ax2.set_title('BPM'+'\n'+'Moyenne = '+str(moy(bpm)))
-    #ax2.set_ylabel('/seconde')
-    ax2.set_xlabel('Temps')"""
-
-    #Ajouter les autres paramètres
+    #Ajouter les autres paramètres de la même manière
 
     plt.savefig('graph.png')                                                            #Enregistre le graphique sous forme d'image en format png
 
@@ -69,15 +58,11 @@ def import_data(nbr):                                                           
             
 
 
-
-
 fig = plt.figure("Données en temps réel")                                               #Création de la fenêtre qui va contenir tous les graphes.
 
 ax1 = fig.add_subplot(2,3,1)                                                            #Crée le premier graphe et lui donne la position 1 dans une grille de 2 lignes et 3 colonnes.
-ax2 = fig.add_subplot(2,3,2)                                                            #crée le deuxième graphe et lui donne la position 2 dans une grille de 2 lignes et 3 colonnes.
-#ax3 = fig.add_subplot(2,3,3)
-#ax4 = fig.add_subplot(2,3,4)
-#ax5 = fig.add_subplot(2,3,5)
+#ax2 = fig.add_subplot(2,3,2)                                                            #crée le deuxième graphe et lui donne la position 2 dans une grille de 2 lignes et 3 colonnes.
+
 
 ani = animation.FuncAnimation(fig,animate,interval=2000)                                #Paramètre l'actualisation de la fenêtre des graphes (contenu,fonction qui contient les différents graphes, interval d'actualisation en ms).
 
