@@ -1,4 +1,4 @@
-//Code issue du site internet "" consulté pour la dernière fois le 12-12-2018.
+//Code issue du site internet "http://forum.arduino.cc/index.php?topic=229765.0&fbclid=IwAR0fO39Sb7AGtgiApe7wcf-h9q1Ypkc7Knl5PGFiWdF6gQJP_pd2TN7j0uI" consulté pour la dernière fois le 12-12-2018.
 //Ce code a été utilisé lors des tests de l'accéléromètre.
 
 
