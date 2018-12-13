@@ -1,5 +1,6 @@
 // Code issue du site http://jakemakes.eu/esp32-arduino-ds18b20-temperature-sensor/ visité pour la dernière fois le 12/12/2018.
 // Nécessite les library "OneWire" et "DallasTemperature" disponible via le lien ci-dessus.
+// Utilisé pour tester le capteur de température en affichant les données dans le moniteur de serie du programme adruino
 
 
 // Include the libraries we need
