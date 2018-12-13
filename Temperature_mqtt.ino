@@ -1,3 +1,8 @@
+// Partie du code "lecture du capteur de température" issue du site http://jakemakes.eu/esp32-arduino-ds18b20-temperature-sensor/ visité pour la dernière fois le 12/12/2018.
+// Nécessite les library "OneWire" et "DallasTemperature" disponible via le lien ci-dessus.
+// Partie du code pour l'envoie des données et l'affichage sur l'écran OLED directement tirées des exemples fournit avec la librairie "WifiLora".
+// Utilisé pour tester le capteur de température en envoyant les données via MQTT (nécessite que le microcontrôleur soit connecté à internet).
+
 #include <WifiLora.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
