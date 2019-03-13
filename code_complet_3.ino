@@ -1,6 +1,8 @@
 #include <WifiLora.h>
 unsigned long lastsent = 0;
 unsigned long interval = 5000;
+unsigned long lastsentacc = 0;
+unsigned long intervalacc = 200;
 
 // ACCELEROMETRE library
 #include "I2Cdev.h"
@@ -14,6 +16,8 @@ unsigned long interval = 5000;
 // TEMPERATURE library
 #include <OneWire.h>
 #include <DallasTemperature.h>
+
+// OLED
 #include <SSD1306.h>
 
 // ACCELEROMETRE 
@@ -75,19 +79,14 @@ void setup() {
     Serial.begin(115200);
     WifiLora.start();
   
-    // ACCELEROMETRE setup 115200
+    // ACCELEROMETRE setup 115200 
     Wire.begin(21,22);
-    /*#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-        Wire.begin(21,22);
-    #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-        Fastwire::setup(400, true);
-    #endif*/
+    
     Serial.println("Initializing I2C devices...");
     accelgyro.initialize();
     Serial.println("Testing device connections...");
     Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-    pinMode(LED_PIN, OUTPUT);
-    
+    //pinMode(LED_PIN, OUTPUT);
 
     // PULSOMETRE setup 921600
     byte rc; 
@@ -106,19 +105,19 @@ void setup() {
   sensors.begin();
 
   //GPS
-  GPSserial.begin(9600,SERIAL_8N1,RX1PIN,TX1PIN);
+  //GPSserial.begin(9600,SERIAL_8N1,RX1PIN,TX1PIN);
 
   //SPIFFS
   SPIFFS.begin();
   File f = SPIFFS.open("/Accelerometre.txt","r");
   f.close();
-  File f = SPIFFS.open("/Pulsometre.txt","r");
+  f = SPIFFS.open("/Pulsometre.txt","r");
   f.close();
-  File f = SPIFFS.open("/GPS.txt","r");
+  f = SPIFFS.open("/GPS.txt","r");
   f.close();
-  File f = SPIFFS.open("/Temperature.txt","r");
+  f = SPIFFS.open("/Temperature.txt","r");
   f.close();
-     
+    
   //Reset pin for display !
   pinMode(16,OUTPUT);
   digitalWrite(16, LOW);    // set GPIO16 low to reset OLED
@@ -129,29 +128,34 @@ void setup() {
   display.flipScreenVertically(); 
   display.setTextAlignment(TEXT_ALIGN_LEFT); 
   display.setFont(ArialMT_Plain_10);  
-  update_display();     
+  update_display();
+
 }
 
 void loop() {
 
+  // on envoie les données de l'accéléromètres séparemment du reste
+  
+  if (millis()-lastsentacc > intervalacc) {
+    lastsentacc= millis();
+    accelerometre();
+    //Spiffs("/Accelerometre", "A = "+String(ax)+ " "+String(ay)+ " "+String(az));
+    String msgacc = ("A = "+String(ax)+ " "+String(ay)+ " "+String(az));
+    if (WifiLora.send(msgacc)) Serial.println(String("Send message : ")+msgacc);
+  }
+
   if (millis()-lastsent > interval) {
     lastsent= millis();
     
-    accelerometre();
-    Spiffs("/Accelerometre", "A = "+String(ax)+ " "+String(ay)+ " "+String(az));
-    //WifiLora.send("A = "+String(ax)+ " "+String(ay)+ " "+String(az));
-    
     pulsometre();
-    Spiffs("/Puslometre", "P = "+String(str));
-    //WifiLora.send("P = " + String(str));
+    //Spiffs("/Puslometre", "P = "+String(str));
     
     temperature();
-    Spiffs("/Temperature", "T = "+String(Temp));
-        
-    gps();
-    Spiffs("/GPS", "G = "+ gps_data[1]+","+gps_data[2]+","+gps_data[3]);
+    //Spiffs("/Temperature", "T = "+String(Temp));
+    //gps();
+    //Spiffs("/GPS", "G = "+ gps_data[1]+","+gps_data[2]+","+gps_data[3]);
 
-    String msg = ("A = "+String(ax)+ " "+String(ay)+ " "+String(az)+"\n"+ "P = " + String(str)+"T = "+String(Temp)+"\n"+"G = "
+    String msg = ("P = " + String(str)+"T = "+String(Temp)+"\n"+"G = "
     + gps_data[1]+","+gps_data[2]+","+gps_data[3]);
     prev=WifiLora.getTx(); //get informations about the previous message sent
     update_display();       
@@ -161,12 +165,14 @@ void loop() {
 
 void accelerometre(){
 
-   /*#ifdef OUTPUT_READABLE_ACCELGYRO
+   accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+
+   #ifdef OUTPUT_READABLE_ACCELGYRO
         Serial.print("a/g:\t");
         Serial.print(ax); Serial.print("\t");
         Serial.print(ay); Serial.print("\t");
         Serial.print(az); Serial.print("\t");
-    #endif*/
+    #endif
          
     #ifdef OUTPUT_BINARY_ACCELGYRO
         Serial.write((uint8_t)(ax >> 8)); Serial.write((uint8_t)(ax & 0xFF));
@@ -253,7 +259,7 @@ void Spiffs(String nameFile, String Data){
   File f = SPIFFS.open(nameFile+".txt","r");
   save = f.readString();
   f.close();
-  File f = SPIFFS.open(nameFile+".txt", "w");
+  f = SPIFFS.open(nameFile+".txt", "w");
   f.println(save+Data+"\n");
-  f.close()  
+  f.close();
 }
