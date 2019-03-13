@@ -3,10 +3,14 @@ unsigned long lastsent = 0;
 unsigned long interval = 5000;
 unsigned long lastsentacc = 0;
 unsigned long intervalacc = 200;
+float previous_y = 16000;
+float stp = 0;
+
 
 // ACCELEROMETRE library
 #include "I2Cdev.h"
 #include "MPU6050.h"
+
 
 // PULSATION library
 #include <Wire.h>
@@ -16,8 +20,6 @@ unsigned long intervalacc = 200;
 // TEMPERATURE library
 #include <OneWire.h>
 #include <DallasTemperature.h>
-
-// OLED
 #include <SSD1306.h>
 
 // ACCELEROMETRE 
@@ -81,12 +83,12 @@ void setup() {
   
     // ACCELEROMETRE setup 115200 
     Wire.begin(21,22);
-    
     Serial.println("Initializing I2C devices...");
     accelgyro.initialize();
     Serial.println("Testing device connections...");
     Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
     //pinMode(LED_PIN, OUTPUT);
+
 
     // PULSOMETRE setup 921600
     byte rc; 
@@ -117,7 +119,7 @@ void setup() {
   f.close();
   f = SPIFFS.open("/Temperature.txt","r");
   f.close();
-    
+      
   //Reset pin for display !
   pinMode(16,OUTPUT);
   digitalWrite(16, LOW);    // set GPIO16 low to reset OLED
@@ -139,24 +141,29 @@ void loop() {
   if (millis()-lastsentacc > intervalacc) {
     lastsentacc= millis();
     accelerometre();
-    //Spiffs("/Accelerometre", "A = "+String(ax)+ " "+String(ay)+ " "+String(az));
-    String msgacc = ("A = "+String(ax)+ " "+String(ay)+ " "+String(az));
-    if (WifiLora.send(msgacc)) Serial.println(String("Send message : ")+msgacc);
+    stepcalculator();
+    chute();
   }
 
   if (millis()-lastsent > interval) {
+
+    Serial.print(String(stp));
+    
     lastsent= millis();
     
     pulsometre();
-    //Spiffs("/Puslometre", "P = "+String(str));
+    Spiffs("/Pulsometre", "P = "+String(str));
     
     temperature();
-    //Spiffs("/Temperature", "T = "+String(Temp));
+    Spiffs("/Temperature", "T = "+String(Temp));
+    
     //gps();
     //Spiffs("/GPS", "G = "+ gps_data[1]+","+gps_data[2]+","+gps_data[3]);
 
+    Spiffs("/Accelerometre", "A = "+String(stp));
+
     String msg = ("P = " + String(str)+"T = "+String(Temp)+"\n"+"G = "
-    + gps_data[1]+","+gps_data[2]+","+gps_data[3]);
+    + gps_data[1]+","+gps_data[2]+","+gps_data[3] + "\n" + "A = "+String(ax)+ " "+String(ay)+ " "+String(az)+ "\n" + "S = " + String(stp));
     prev=WifiLora.getTx(); //get informations about the previous message sent
     update_display();       
     if (WifiLora.send(msg)) Serial.println(String("Send message : ")+msg); 
@@ -254,6 +261,19 @@ void gps(){
   }
 }
 
+void stepcalculator(){
+  if (ay <= 14000 and previous_y > 14000){
+    stp = stp + 1;
+  }
+  previous_y = ay;
+}
+
+void chute(){
+  if (abs(ax) > 15000 or abs(az) > 15000){
+    WifiLora.send("Possible chute");
+  }
+}
+
 void Spiffs(String nameFile, String Data){
   String save;
   File f = SPIFFS.open(nameFile+".txt","r");
@@ -261,5 +281,5 @@ void Spiffs(String nameFile, String Data){
   f.close();
   f = SPIFFS.open(nameFile+".txt", "w");
   f.println(save+Data+"\n");
-  f.close();
+  f.close();  
 }
