@@ -1,0 +1,12 @@
+<NetworkLink>
+<Link>
+
+        <href>position.kml</href>
+        <refreshMode>onInterval</refreshMode>
+        <refreshInterval>5</refreshInterval>
+
+</Link>
+</NetworkLink>
+
+
+# A copier dans un fichier txt et sauvgarder en KML sous le nom que vous souhaitez, et c'est ce fichier qu'il faut ouvrir sur Google Earth
