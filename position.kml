@@ -12,4 +12,4 @@
     <latitude> gpslat[len(gpslat)-1 </latitude>   
     </Placemark>
     
-    #A copier dans un fichier TXT et sauvgarder comme ceci : postion.kml
+    #A copier dans un fichier TXT et sauvgarder comme ceci : position.kml
