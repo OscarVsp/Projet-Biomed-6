@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import paho.mqtt.client as mqtt
 import time
+import math
 import smtplib
 
 MQTT_TOPIC = "/ULB/BA2/BIOMED6/6" 
@@ -12,6 +13,11 @@ MQTT_SERVERPORT = 1883
 pas_prec = 0
 pas_init = 0
 i = 0
+
+radius = 6371
+lastLat = 0
+lastLong = 0
+distance = 0
 
 # se connecter au serveur
 def on_connect(client, userdata, flags, rc):
@@ -27,7 +33,7 @@ def on_message(client, userdata, msg):
     donnee = donnee.split("\n") #P T G A S
     pulsometre(donnee[0])
     temperature(donnee[1])
-    """gps(donnee[2])"""
+    gps(donnee[2])
     accelerometre(donnee[3])
 
     # nombre de pas 
@@ -84,6 +90,51 @@ def frequence(pas_total):
     file=open('DataFrequence.txt','a')
     file.write("t = "+str(tps)+"freq = "+str(freq)+'\n')
     file.close()
+
+def gps(donnees):
+    global radius,lastLat,lastLong,distance
+    donnees= donnees.split()[2].split(',')
+    lat = degMinToDeg(float(donnees[0]))
+    long = degMinToDeg(float(donnees[1]))
+    vit = float(donnees[2])*1,85
+
+    tps = time.time()-tstart
+    # ajoute les mesures dans une liste pour les porter en graphique
+    xdata4.append(tps)
+    ydata4.append(vit)
+
+    pos=open("position.kml", "w")
+    pos.write("""<Placemark>
+      <name>LIVE GPS ULB</name>
+      <description>Some Descriptive text.</description>
+      <Point>
+        <coordinates>%s,%s,0</coordinates>
+      </Point>
+      <gx:ViewerOptions>
+    <gx:option name="streetview" enabled=boolean />   
+      </gx:ViewerOptions>
+    <lookAt>
+    <longitude> gpslong[len(gpslong)-1 </logitude>
+    <latitude> gpslat[len(gpslat)-1 </latitude>   
+    </Placemark>""" %lat,long)
+
+    if (lastLat != 0 and lastLong != 0):
+        dlat = math.radians(lastLat-lat)
+        dlon = math.radians(lastLon-lon)
+        a = math.sin(dlat/2) * math.sin(dlat/2) + math.cos(math.radians(lat)) \
+            * math.cos(math.radians(lastLat)) * math.sin(dlon/2) * math.sin(dlon/2)
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        d = radius * c
+        distance += d
+
+    file=open("DataGPS.txt",'a')
+    file.write("lat = "+str(lat)+" long = "+str(long)+" vit = "+str(vit))
+    file.close()
+
+def degMinToDeg(coord):
+    inc = int(coord/100)
+    otc = coord - (inc)*100
+    return(inc + otc/60)
 
 def pulsometre(donnee):
     v = str(donnee[4:]).split()
@@ -205,7 +256,32 @@ def run3(data3):
                 xdata3.pop(0)
                 ydata3.pop(0)
         line3.set_data(xdata3, ydata3)    
-    return line3,       
+    return line3,
+
+""" graphe 4 : gps """
+
+#Function to init the matplotlib plot
+def init4():
+    ax4.set_ylim(0, 150) # /!/ diminuer le maximum avec les vraies valeurs
+    ax4.set_xlim(0, 180) 
+    del xdata4[:]
+    del ydata4[:]
+    line4.set_data(xdata4, ydata4)
+    return line4,        
+
+#Function execute to animate the matplotlib plot/update data
+def run4(data4):
+    # update the data
+    if xdata4:
+        xmin, xmax = ax4.get_xlim()
+        if xdata4[-1]>xmax: #move x axes limit by 1 minute 
+            d=60  #move 1minute axes
+            ax4.set_xlim(xmin+d,xmax+d)
+            while xdata4[0]<xmin+d: #remove old data
+                xdata4.pop(0)
+                ydata4.pop(0)
+        line4.set_data(xdata4, ydata4)    
+    return line4,
 
 
 tstart=time.time()  #application time start 
@@ -254,6 +330,19 @@ plt.ylabel('Fréquence de pas (nombre de pas/min)')
 #matplotlib animation update every second (1000ms)
 ani3 = animation.FuncAnimation(fig3, run3, interval=1000,
                               repeat=True, init_func=init3)
+
+# graphe gps
+fig4, ax4 = plt.subplots() #créer une figure (fig) et des axes (ax)
+line4, = ax4.plot([], [], lw=2)
+ax4.grid()
+xdata4 = []
+ydata4 = []
+plt.title('Vitesse')
+plt.xlabel('Temps (s)')
+plt.ylabel(r'Vitesse (Km/h)')
+#matplotlib animation update every second (1000ms)
+ani4 = animation.FuncAnimation(fig4, run4, interval=1000,
+                              repeat=True, init_func=init1)
 
 client.loop_start()                              
 plt.show()
