@@ -10,6 +10,8 @@ MQTT_SERVER = 'broker.hivemq.com'
 MQTT_SERVERPORT = 1883
 
 pas_prec = 0
+pas_init = 0
+i = 0
 
 # se connecter au serveur
 def on_connect(client, userdata, flags, rc):
@@ -19,28 +21,38 @@ def on_connect(client, userdata, flags, rc):
 # recevoir un message
 def on_message(client, userdata, msg):
     global step
+    global i
+    global pas_init
     donnee = msg.payload.decode("utf-8","ignore")
     donnee = donnee.split("\n") #P T G A S
-    print(donnee)
     pulsometre(donnee[0])
     temperature(donnee[1])
-    gps(donnee[2])
+    """gps(donnee[2])"""
     accelerometre(donnee[3])
-    print(donnee[4]) # nombre de pas
-    print(frequence(float(donnee[4][4:]))) # fréquence
+
+    # nombre de pas 
+    if i == 0:
+        pas_init = float(donnee[4][4:])
+        i = 1
+    nombre_de_pas = float(donnee[4][4:]) - pas_init
+    print("Nombre de pas = " + str(nombre_de_pas))
+    
+    frequence(float(nombre_de_pas)) # fréquence de pas
+    
     if donnee[0] == "Possible chute":
         mail("le coureur est tombe")
+    print("\n")
 
 def temperature(donnee):
     # récupère les mesures de la donnée reçue
     val = float(donnee[4:])
-    print("temp = "+str(val))
+    print("Température corporelle = "+str(val) + " °C" )
     tps = time.time()-tstart
     # ajoute les mesures dans une liste pour les porter en graphique
     xdata1.append(tps)
     ydata1.append(val)
     # vérifie le paramètre du coureur et envoie un mail si nécessaire"
-    urgence('T', val)
+    """urgence('T', val)"""
     # place les données dans un fichier pour les sauver
     file=open('DataTemperature.txt','a')
     file.write("t = "+str(tps)+" temp = "+str(val)+'\n')
@@ -49,35 +61,42 @@ def temperature(donnee):
 def accelerometre(donnee):
     # récupère les mesures de la donnée reçue
     val = donnee[4:].split()
-    print("acc = "+str(val))
+    print("Accéléromètre = "+str(val))
     tps = time.time()-tstart
     # vérifie le paramètre du coureur et envoie un mail si nécessaire
-    urgence('A', [float(val[0]), float(val[2])])
+    """urgence('A', [float(val[0]), float(val[2])])"""
     # place les données dans un fichier pour les sauver
     file=open('DataAccelerometre.txt','a')
     file.write("t = "+str(tps)+" x = "+str(val[0])+" y = "+str(val[1])+" z = "+str(val[2])+'\n')
     file.close()
 
 def frequence(pas_total):
-    print('ok1')
     global pas_prec
     pas = pas_total - pas_prec
     pas_prec = pas_total
     freq = pas*6
-    return freq
+    print("Fréquence de pas = " + str(freq) + " pas/minute")
+    tps = time.time() - tstart
+    # ajoute les mesures dans une liste pour les porter en graphique
+    xdata3.append(tps)
+    ydata3.append(freq)
+    # place les données dans un fichier pour les sauver
+    file=open('DataFrequence.txt','a')
+    file.write("t = "+str(tps)+"freq = "+str(freq)+'\n')
+    file.close()
 
 def pulsometre(donnee):
     v = str(donnee[4:]).split()
     val1 = float(v[0][:(len(v[0])-1)])
     val2 = float(v[1])
     val = (val1 + val2)/2
-    print("puls = "+str(val))
+    print("Pulsation = "+str(val) + " batt/min")
     tps = time.time()-tstart
     # ajoute les mesures dans une liste pour les porter en graphique
     xdata2.append(tps)
     ydata2.append(val)
     # vérifie le paramètre du coureur et envoie un mail si nécessaire
-    urgence('P',val)
+    """urgence('P',val)"""
     # place les données dans un fichier pour les sauver
     file=open('DataPuslometre.txt','a')
     file.write("t = "+str(tps)+" puls = "+str(val)+'\n')
@@ -95,7 +114,7 @@ def urgence(parametre, valeur):
     elif parametre == 'A':
         if  valeur[0] >= 15000 or valeur[1] >= 15000: #valeurs à verifier
             print("Problème! La personne est tombée !")
-            #mail("Probleme! La personne est tombee !")
+            mail("Probleme! La personne est tombee !")
     # si le paramètre est la pulsation
     elif parametre == 'P':
         if valeur > 200 or valeur < 50 : # en considérant une personne normale de 20 ans
@@ -161,7 +180,32 @@ def run2(data2):
                 xdata2.pop(0)
                 ydata2.pop(0)
         line2.set_data(xdata2, ydata2)    
-    return line2,      
+    return line2,
+
+""" graphe 3  : fréquence de pas """
+
+#Function to init the matplotlib plot
+def init3():
+    ax3.set_ylim(10, 40) # /!/ diminuer le maximum avec les vraies valeurs
+    ax3.set_xlim(0, 180) 
+    del xdata3[:]
+    del ydata3[:]
+    line3.set_data(xdata3, ydata3)
+    return line3,        
+
+#Function execute to animate the matplotlib plot/update data
+def run3(data3):
+    # update the data
+    if xdata3:
+        xmin, xmax = ax3.get_xlim()
+        if xdata3[-1]>xmax: #move x axes limit by 1 minute 
+            d=60  #move 1minute axes
+            ax3.set_xlim(xmin+d,xmax+d)
+            while xdata3[0]<xmin+d: #remove old data
+                xdata3.pop(0)
+                ydata3.pop(0)
+        line3.set_data(xdata3, ydata3)    
+    return line3,       
 
 
 tstart=time.time()  #application time start 
@@ -198,6 +242,18 @@ plt.ylabel(r'Pulsation cardiaque (batt/min)')
 ani2 = animation.FuncAnimation(fig2, run2, interval=1000,
                               repeat=True, init_func=init2)
 
+# graphe fréquence de de pas
+fig3, ax3 = plt.subplots() #créer une figure (fig) et des axes (ax)
+line3, = ax3.plot([], [], lw=2)
+ax3.grid()
+xdata3 = []
+ydata3 = []
+plt.title('Fréquence de pas')
+plt.xlabel('Temps (s)')
+plt.ylabel('Fréquence de pas (nombre de pas/min)')
+#matplotlib animation update every second (1000ms)
+ani3 = animation.FuncAnimation(fig3, run3, interval=1000,
+                              repeat=True, init_func=init3)
 
 client.loop_start()                              
 plt.show()
