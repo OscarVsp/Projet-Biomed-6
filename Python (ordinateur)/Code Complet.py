@@ -191,11 +191,8 @@ def mail(message):
 
 #Function to init the matplotlib plot
 def init1():
-    axs[0][0].set_title('Température corporelle'+'\n'+'Moyenne : '+str(round(moy(ydata1),1))+' °C')
-    axs[0][0].set_xlabel('Temps (s)',fontsize=7)
-    axs[0][0].set_ylabel(r'Temperature ($^\circ$ C)',fontsize=7)
-    axs[0][0].set_ylim(10, 40) # /!/ diminuer le maximum avec les vraies valeurs
-    axs[0][0].set_xlim(0, 180) 
+    ax1.set_ylim(10, 40) # /!/ diminuer le maximum avec les vraies valeurs
+    ax1.set_xlim(0, 180) 
     del xdata1[:]
     del ydata1[:]
     line1.set_data(xdata1, ydata1)
@@ -204,12 +201,12 @@ def init1():
 #Function execute to animate the matplotlib plot/update data
 def run1(data1):
     # update the data
-    axs[0][0].set_title('Température corporelle'+'\n'+'Moyenne : '+str(round(moy(ydata1),1))+' °C')
+    ax1.set_title('Température corporelle'+'\n'+'Moyenne : '+str(round(moy(ydata1),1))+' °C')
     if xdata1:
-        xmin, xmax = axs[0][0].get_xlim()
+        xmin, xmax = ax1.get_xlim()
         if xdata1[-1]>xmax: #move x axes limit by 1 minute 
             d=60  #move 1minute axes
-            axs[0][0].set_xlim(xmin+d,xmax+d)
+            ax1.set_xlim(xmin+d,xmax+d)
             while xdata1[0]<xmin+d: #remove old data
                 xdata1.pop(0)
                 ydata1.pop(0)
@@ -220,11 +217,9 @@ def run1(data1):
 
 #Function to init the matplotlib plot
 def init2():
-    axs[1][0].set_title('Pulsation cardiaque'+'\n'+'Moyenne : '+str(round(moy(ydata2)))+' BPM')
-    axs[1][0].set_xlabel('Temps (s)',fontsize=7)
-    axs[1][0].set_ylabel(r'BPM (battements/min)',fontsize=7)
-    axs[1][0].set_ylim(0, 150) # /!/ diminuer le maximum avec les vraies valeurs
-    axs[1][0].set_xlim(0, 180) 
+    ax2.set_title('Pulsation cardiaque'+'\n'+'Moyenne : '+str(round(moy(ydata2)))+' BPM')
+    ax2.set_ylim(0, 150) # /!/ diminuer le maximum avec les vraies valeurs
+    ax2.set_xlim(0, 180) 
     del xdata2[:]
     del ydata2[:]
     line2.set_data(xdata2, ydata2)
@@ -233,12 +228,12 @@ def init2():
 #Function execute to animate the matplotlib plot/update data
 def run2(data2):
     # update the data
-    axs[1][0].set_title('Pulsation cardiaque'+'\n'+'Moyenne : '+str(round(moy(ydata2)))+' BPM')
+    ax2.set_title('Pulsation cardiaque'+'\n'+'Moyenne : '+str(round(moy(ydata2)))+' BPM')
     if xdata2:
-        xmin, xmax = axs[1][0].get_xlim()
+        xmin, xmax = ax2.get_xlim()
         if xdata2[-1]>xmax: #move x axes limit by 1 minute 
             d=60  #move 1minute axes
-            axs[1][0].set_xlim(xmin+d,xmax+d)
+            ax2.set_xlim(xmin+d,xmax+d)
             while xdata2[0]<xmin+d: #remove old data
                 xdata2.pop(0)
                 ydata2.pop(0)
@@ -249,11 +244,9 @@ def run2(data2):
 
 #Function to init the matplotlib plot
 def init3():
-    axs[0][1].set_title('Fréquence de pas'+'\n'+'Moyenne : '+str(round(moy(ydata3)))+' pas/s | nbr pas : '+str(pas_prec)+' pas')
-    axs[0][1].set_xlabel('Temps (s)',fontsize=7)
-    axs[0][1].set_ylabel(r'fréquence (pas/s)',fontsize=7)
-    axs[0][1].set_ylim(10, 40) # /!/ diminuer le maximum avec les vraies valeurs
-    axs[0][1].set_xlim(0, 180) 
+    ax3.set_title('Fréquence de pas'+'\n'+'Moyenne : '+str(round(moy(ydata3)))+' pas/s | nbr pas : '+str(pas_prec)+' pas')
+    ax3.set_ylim(10, 40) # /!/ diminuer le maximum avec les vraies valeurs
+    ax3.set_xlim(0, 180) 
     del xdata3[:]
     del ydata3[:]
     line3.set_data(xdata3, ydata3)
@@ -262,12 +255,12 @@ def init3():
 #Function execute to animate the matplotlib plot/update data
 def run3(data3):
     # update the data
-    axs[0][1].set_title('Fréquence de pas'+'\n'+'Moyenne : '+str(round(moy(ydata3)))+' pas/s')
+    ax3.set_title('Fréquence de pas'+'\n'+'Moyenne : '+str(round(moy(ydata3)))+' pas/s | nbr pas : '+str(pas_prec)+' pas')
     if xdata3:
-        xmin, xmax = axs[0][1].get_xlim()
+        xmin, xmax = ax3.get_xlim()
         if xdata3[-1]>xmax: #move x axes limit by 1 minute 
             d=60  #move 1minute axes
-            axs[0][1].set_xlim(xmin+d,xmax+d)
+            ax3.set_xlim(xmin+d,xmax+d)
             while xdata3[0]<xmin+d: #remove old data
                 xdata3.pop(0)
                 ydata3.pop(0)
@@ -278,11 +271,9 @@ def run3(data3):
 
 #Function to init the matplotlib plot
 def init4():
-    axs[1][1].set_title('Vitesse'+'\n'+'Vitesse moyenne : '+str(round(moy(ydata4),1))+'km/h | Distance totale : '+str(round(distance,2))+' km')
-    axs[1][1].set_xlabel('Temps (s)',fontsize=7)
-    axs[1][1].set_ylabel(r'vitesse (km/h)',fontsize=7)
-    axs[1][1].set_ylim(0, 20) # /!/ diminuer le maximum avec les vraies valeurs
-    axs[1][1].set_xlim(0, 180)
+    ax4.set_title('Vitesse'+'\n'+'Vitesse moyenne : '+str(round(moy(ydata4),1))+'km/h | Distance totale : '+str(round(distance,2))+' km')
+    ax4.set_ylim(0, 20) # /!/ diminuer le maximum avec les vraies valeurs
+    ax4.set_xlim(0, 180)
     del xdata4[:]
     del ydata4[:]
     line4.set_data(xdata4, ydata4)
@@ -291,30 +282,18 @@ def init4():
 #Function execute to animate the matplotlib plot/update data
 def run4(data4):
     # update the data
-    axs[1][1].set_title('Vitesse'+'\n'+'Vitesse moyenne : '+str(round(moy(ydata4),1))+'km/h | Distance totale : '+str(round(distance,2))+' km')
+    ax4.set_title('Vitesse'+'\n'+'Vitesse moyenne : '+str(round(moy(ydata4),1))+'km/h | Distance totale : '+str(round(distance,2))+' km')
     if xdata4:
-        xmin, xmax = axs[1][1].get_xlim()
+        xmin, xmax = ax4.get_xlim()
         if xdata4[-1]>xmax: #move x axes limit by 1 minute 
             d=60  #move 1minute axes
-            axs[1][1].set_xlim(xmin+d,xmax+d)
+            ax4.set_xlim(xmin+d,xmax+d)
             while xdata4[0]<xmin+d: #remove old data
                 xdata4.pop(0)
                 ydata4.pop(0)
         line4.set_data(xdata4, ydata4)    
     return line4,
 
-def init():
-    init1()
-    init2()
-    init3()
-    init4()
-
-def run(data1):
-    print(data1)
-    run1(data1)
-    run2(data2)
-    run3(data3)
-    run4(data4)
 
 tstart=time.time()  #application time start 
 client = mqtt.Client()
@@ -324,29 +303,57 @@ client.on_message = on_message
 client.connect(MQTT_SERVER, MQTT_SERVERPORT, 60)
 
 # graphe température
-fig, axs = plt.subplots(2,2,constrained_layout=True) #créer une figure (fig) et des axes (ax)
-line1, = axs[0][0].plot([], [], lw=2)
-axs[0][0].grid()
+fig1, ax1 = plt.subplots() #créer une figure (fig) et des axes (ax)
+line1, = ax1.plot([], [], lw=2)
+ax1.grid()
 xdata1 = []
 ydata1 = []
+plt.title('Température corporelle')
+plt.xlabel('Temps (s)')
+plt.ylabel(r'Temperature ($^\circ$ C)')
+#matplotlib animation update every second (1000ms)
+ani1 = animation.FuncAnimation(fig1, run1, interval=1000,
+                              repeat=True, init_func=init1)
 
-line2, = axs[1][0].plot([], [], lw=2)
-axs[1][0].grid()
+
+# graphe pulsation
+fig2, ax2 = plt.subplots() #créer une figure (fig) et des axes (ax)
+line2, = ax2.plot([], [], lw=2)
+ax2.grid()
 xdata2 = []
 ydata2 = []
+plt.title('Pulsation cardiaque')
+plt.xlabel('Temps (s)')
+plt.ylabel(r'Pulsation cardiaque (batt/min)')
+#matplotlib animation update every second (1000ms)
+ani2 = animation.FuncAnimation(fig2, run2, interval=1000,
+                              repeat=True, init_func=init2)
 
-line3, = axs[0][1].plot([], [], lw=2)
-axs[0][1].grid()
+# graphe fréquence de de pas
+fig3, ax3 = plt.subplots() #créer une figure (fig) et des axes (ax)
+line3, = ax3.plot([], [], lw=2)
+ax3.grid()
 xdata3 = []
 ydata3 = []
+plt.title('Fréquence de pas')
+plt.xlabel('Temps (s)')
+plt.ylabel('Fréquence de pas (nombre de pas/min)')
+#matplotlib animation update every second (1000ms)
+ani3 = animation.FuncAnimation(fig3, run3, interval=1000,
+                              repeat=True, init_func=init3)
 
-line4, = axs[1][1].plot([], [], lw=2)
-axs[1][1].grid()
+# graphe gps
+fig4, ax4 = plt.subplots() #créer une figure (fig) et des axes (ax)
+line4, = ax4.plot([], [], lw=2)
+ax4.grid()
 xdata4 = []
 ydata4 = []
+plt.title('Vitesse'+'\n'+'(Distance totale parcourue : 0 km)')
+plt.xlabel('Temps (s)')
+plt.ylabel(r'Vitesse (km/h)')
 #matplotlib animation update every second (1000ms)
-ani1 = animation.FuncAnimation(fig, run, interval=1000,
-                              repeat=True, init_func=init)
-client.loop_start()
+ani4 = animation.FuncAnimation(fig4, run4, interval=1000,
+                              repeat=True, init_func=init4)
 
+client.loop_start()                              
 plt.show()
