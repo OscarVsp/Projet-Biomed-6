@@ -2,8 +2,8 @@
 unsigned long lastsent = 0;
 unsigned long interval = 5000;
 unsigned long lastsentacc = 0;
-unsigned long intervalacc = 200;
-float previous_y = 16000;
+unsigned long intervalacc = 100;
+float previous_y = -20000;
 float stp = 0;
 
 
@@ -37,7 +37,7 @@ BH1790GLC bh1790glc;
 char str[100];
 
 // TEMPERATURE
-#define ONE_WIRE_BUS 16
+#define ONE_WIRE_BUS 16 // à changer to 17
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 String Temp;
@@ -69,26 +69,54 @@ void update_display() {
       }
     }
     if (prev.state>2) {
-      display.drawString(0,20,String("Msg: ")+prev.msg.substring(0,40));
-      display.drawString(0,30,(prev.loramode?String("Sent by lora ")+(prev.state==4?String(" ack ")+String(prev.ackRSSI):String("not ack")):String("Sent by mqtt ("+String(prev.mqttnb))+String(")")));
-      display.drawString(0,40,String("Lora stats: ")+String(prev.loranbok)+"/"+String(prev.loranb));
+      display.drawString(0,20,String("T=")+Temp+String(" | P=")+str);
+      display.drawString(0,30,String("A=")+stp+String(" | G=")+gps_data[1]+","+gps_data[2]+","+gps_data[3]);
+      display.drawString(0,40,(prev.loramode?String("Sent by lora ")+(prev.state==4?String(" ack ")+String(prev.ackRSSI):String("not ack")):String("Sent by mqtt ("+String(prev.mqttnb))+String(")")));
+      display.drawString(0,50,String("Lora stats: ")+String(prev.loranbok)+"/"+String(prev.loranb));
     }
+    display.display();
+}
+
+void begin_display(){
+    //Reset pin for display !
+    pinMode(16,OUTPUT);
+    digitalWrite(16, LOW);    // set GPIO16 low to reset OLED
+    delay(50); 
+    digitalWrite(16, HIGH); // while OLED is running, must set GPIO16 in high、 
+    display.init();
+    display.clear();
+    display.flipScreenVertically(); 
+    display.setTextAlignment(TEXT_ALIGN_CENTER); 
+    display.setFont(ArialMT_Plain_16);
+    display.drawString(64,0,String("Projet Biomed"));
+    display.drawString(64,15,String("2018 - 2019"));
+    display.drawString(64,30,String("Groupe n°6"));
+    display.drawString(64,45,String("Prototype final"));
     display.display();
 }
 
 void setup() {
 
+    begin_display();
+    delay(1500);
+    
+
     Serial.begin(115200);
     WifiLora.start();
+    Serial.println("WifiLora Started");
   
     // ACCELEROMETRE setup 115200 
     Wire.begin(21,22);
-    Serial.println("Initializing I2C devices...");
     accelgyro.initialize();
-    Serial.println("Testing device connections...");
-    Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-    //pinMode(LED_PIN, OUTPUT);
+    Serial.println(accelgyro.testConnection() ? "Acc ok" : "Acc pas ok");
 
+    display.clear();
+    display.setTextAlignment(TEXT_ALIGN_LEFT); 
+    display.setFont(ArialMT_Plain_10);
+    display.drawString(0,0,String("Projet biomed groupe 6"));
+    display.drawString(0,20,String("Démarrage des capteurs..."));
+    display.drawString(0,30,(accelgyro.testConnection()?String("Acc ok"):String("Acc pas ok")));
+    display.display();
 
     // PULSOMETRE setup 921600
     byte rc; 
@@ -96,47 +124,61 @@ void setup() {
     Wire.setClock(400000L);  
     rc = bh1790glc.init();
     if (rc != 0) {
-      Serial.println("BH1790 initialize failed");
+      Serial.println("Puls pas ok");
       }   
     else {
-      Serial.println("LEDON Data, LEDOFF Data");
+      Serial.println("Puls ok");
       }
 
-   // TEMPERATURE
-  Serial.println("Dallas Temperature IC Control Library Demo");
-  sensors.begin();
+    display.clear();
+    display.drawString(0,0,String("Projet biomed groupe 6"));
+    display.drawString(0,20,String("Démarrage des capteurs..."));
+    display.drawString(0,30,(accelgyro.testConnection()?String("Acc ok | "):String("Acc pas ok | "))+(rc==0?String("Puls ok"):String("Puls pas ok")));
+    display.display();
 
-  //GPS
-  GPSserial.begin(9600,SERIAL_8N1,RX1PIN,TX1PIN);
+    // TEMPERATURE
+    sensors.begin();
+  
+    //GPS
+    GPSserial.begin(9600,SERIAL_8N1,RX1PIN,TX1PIN);
+  
+    //SPIFFS
+    SPIFFS.begin();
+    File f = SPIFFS.open("/Accelerometre.txt","w");
+    f.close();
+    f = SPIFFS.open("/Pulsometre.txt","w");
+    f.close();
+    f = SPIFFS.open("/GPS.txt","w");
+    f.close();
+    f = SPIFFS.open("/Temperature.txt","w");
+    f.close();
 
-  //SPIFFS
-  SPIFFS.begin();
-  File f = SPIFFS.open("/Accelerometre.txt","w");
-  f.close();
-  f = SPIFFS.open("/Pulsometre.txt","w");
-  f.close();
-  f = SPIFFS.open("/GPS.txt","w");
-  f.close();
-  f = SPIFFS.open("/Temperature.txt","w");
-  f.close();
-      
-  //Reset pin for display !
-  pinMode(16,OUTPUT);
-  digitalWrite(16, LOW);    // set GPIO16 low to reset OLED
-  delay(50); 
-  digitalWrite(16, HIGH); // while OLED is running, must set GPIO16 in high、 
-  display.init();
-  display.clear();
-  display.flipScreenVertically(); 
-  display.setTextAlignment(TEXT_ALIGN_LEFT); 
-  display.setFont(ArialMT_Plain_10);  
-  update_display();
+    display.clear();
+    display.drawString(0,0,String("Projet biomed groupe 6"));
+    display.drawString(0,20,String("Démarrage des capteurs..."));
+    display.drawString(0,30,(accelgyro.testConnection()?String("Acc ok | "):String("Acc pas ok | "))+(rc==0?String("Puls ok"):String("Puls pas ok")));
+    display.drawString(0,40,String("Temp ok | GPS ok"));
+    display.display();
+    delay(1000);
 
+    display.clear();
+    display.setTextAlignment(TEXT_ALIGN_CENTER); 
+    display.setFont(ArialMT_Plain_16);
+    display.drawString(64,15,String("Prototype prêt"));
+    display.drawString(64,33,String("Bonne course !"));
+    display.display();
+    delay(2000);
+
+
+    display.clear();
+    display.setTextAlignment(TEXT_ALIGN_LEFT); 
+    display.setFont(ArialMT_Plain_10);   
+    update_display();
 }
 
 void loop() {
 
-  // on envoie les données de l'accéléromètres séparemment du reste
+  // on envoie les données de l'accéléromètre séparemment du reste
   
   if (millis()-lastsentacc > intervalacc) {
     lastsentacc= millis();
@@ -148,6 +190,8 @@ void loop() {
   if (millis()-lastsent > interval) {
     
     lastsent= millis();
+
+    Spiffs("/Accelerometre", "A = "+String(stp));
     
     pulsometre();
     Spiffs("/Pulsometre", "P = "+String(str));
@@ -158,27 +202,19 @@ void loop() {
     gps();
     Spiffs("/GPS", "G = "+ gps_data[1]+","+gps_data[2]+","+gps_data[3]);
 
-    Spiffs("/Accelerometre", "A = "+String(stp));
-
     String msg = ("P = " + String(str)+"T = "+String(Temp)+"\n"+"G = "
     + gps_data[1]+","+gps_data[2]+","+gps_data[3] + "\n" + "A = "+String(ax)+ " "+String(ay)+ " "+String(az)+ "\n" + "S = " + String(stp));
+    
     prev=WifiLora.getTx(); //get informations about the previous message sent
     update_display();       
-    if (WifiLora.send(msg)) Serial.println(String("Send message : ")+msg); 
+    if (WifiLora.send(msg)) Serial.println(String("Send message : ")+msg);
   }
 }
 
 void accelerometre(){
 
    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-   /*
-   #ifdef OUTPUT_READABLE_ACCELGYRO
-        Serial.print("a/g:\t");
-        Serial.print(ax); Serial.print("\t");
-        Serial.print(ay); Serial.print("\t");
-        Serial.print(az); Serial.print("\t");
-    #endif*/
-         
+   
     #ifdef OUTPUT_BINARY_ACCELGYRO
         Serial.write((uint8_t)(ax >> 8)); Serial.write((uint8_t)(ax & 0xFF));
         Serial.write((uint8_t)(ay >> 8)); Serial.write((uint8_t)(ay & 0xFF));
@@ -196,20 +232,17 @@ void pulsometre(){
     rc = bh1790glc.get_val(val);
     if (rc == 0) {
       sprintf(str, "%d, %d\n", val[1], val[0]);
-      //Serial.print(str);
   }
 }
 
 void temperature(){
   
-    //Serial.print("Requesting temperatures...");
     sensors.requestTemperatures();
-    //Serial.println("DONE");
-    Temp = String(sensors.getTempCByIndex(0));
-    //Serial.println(Temp);    
+    Temp = String(sensors.getTempCByIndex(0));    
 }
 
 void gps(){
+  
   String GPS_txt;
   byte byteGps;
   do {
@@ -260,15 +293,16 @@ void gps(){
 }
 
 void stepcalculator(){
-  if (ay <= 14000 and previous_y > 14000){
+  if (ay >= -14000 and previous_y < -14000){
     stp = stp + 1;
   }
   previous_y = ay;
 }
 
 void chute(){
-  if (abs(ax) > 15000 or abs(az) > 15000){
+  if (abs(az) > 20000){
     WifiLora.send("Possible chute");
+    Serial.println("chute");
   }
 }
 
