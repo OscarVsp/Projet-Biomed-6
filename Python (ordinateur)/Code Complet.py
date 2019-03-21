@@ -6,6 +6,8 @@ import time
 import math
 import smtplib
 
+tstart = 0
+
 MQTT_TOPIC, MQTT_SERVER, MQTT_SERVERPORT = "/ULB/BA2/BIOMED6/6", 'broker.hivemq.com', 1883
 
 pas_prec, pas_init, i = 0, 0, 0
@@ -19,7 +21,11 @@ def on_connect(client, userdata, flags, rc):
 
 # recevoir un message
 def on_message(client, userdata, msg):
-    global step, i, pas_init
+    global step, i, pas_init, tstart
+    
+    if tstart == 0:
+        tstart=time.time()  #application time start 
+    
     donnee = msg.payload.decode("utf-8","ignore")
     donnee = donnee.split("\n") #P T G A S
     pulsometre(donnee[0])
@@ -244,8 +250,8 @@ def run2(data2):
 
 #Function to init the matplotlib plot
 def init3():
-    ax3.set_title('Fréquence de pas'+'\n'+'Moyenne : '+str(round(moy(ydata3)))+' pas/s | nbr pas : '+str(pas_prec)+' pas')
-    ax3.set_ylim(10, 40) # /!/ diminuer le maximum avec les vraies valeurs
+    ax3.set_title('Fréquence de pas'+'\n'+'Moyenne : '+str(round(moy(ydata3),1))+' pas/min | nbr pas : '+str(int(pas_prec))+' pas')
+    ax3.set_ylim(0, 100) # /!/ diminuer le maximum avec les vraies valeurs
     ax3.set_xlim(0, 180) 
     del xdata3[:]
     del ydata3[:]
@@ -255,7 +261,7 @@ def init3():
 #Function execute to animate the matplotlib plot/update data
 def run3(data3):
     # update the data
-    ax3.set_title('Fréquence de pas'+'\n'+'Moyenne : '+str(round(moy(ydata3)))+' pas/s | nbr pas : '+str(pas_prec)+' pas')
+    ax3.set_title('Fréquence de pas'+'\n'+'Moyenne : '+str(round(moy(ydata3),1))+' pas/min | nbr pas : '+str(int(pas_prec))+' pas')
     if xdata3:
         xmin, xmax = ax3.get_xlim()
         if xdata3[-1]>xmax: #move x axes limit by 1 minute 
@@ -272,7 +278,7 @@ def run3(data3):
 #Function to init the matplotlib plot
 def init4():
     ax4.set_title('Vitesse'+'\n'+'Vitesse moyenne : '+str(round(moy(ydata4),1))+'km/h | Distance totale : '+str(round(distance,2))+' km')
-    ax4.set_ylim(0, 20) # /!/ diminuer le maximum avec les vraies valeurs
+    ax4.set_ylim(0, 30) # /!/ diminuer le maximum avec les vraies valeurs
     ax4.set_xlim(0, 180)
     del xdata4[:]
     del ydata4[:]
@@ -294,8 +300,6 @@ def run4(data4):
         line4.set_data(xdata4, ydata4)    
     return line4,
 
-
-tstart=time.time()  #application time start 
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
