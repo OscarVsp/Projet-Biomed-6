@@ -102,7 +102,7 @@ def gps(donnees):
       </Point>
     <longitude> long </longitude>
     <latitude> lat </latitude>   
-    </Placemark>""" %(lat,long))
+    </Placemark>""" %(long,lat))
 
     if (lastLat != 0 and lastLong != 0):
         dist(lat,long)
